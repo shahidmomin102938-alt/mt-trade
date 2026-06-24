@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="MT Belts"/>
+<meta name="theme-color" content="#e8a020"/>
+<meta name="description" content="Musaddique Traders — Belt Stock aur Billing Manager"/>
+<title>Musaddique Traders — Belt Stock Manager</title>
+<link rel="manifest" href="./manifest.json"/>
+<link rel="apple-touch-icon" href="./icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #181c27; --card: #1e2333; --border: #2a3045;
+    --accent: #e8a020; --accent2: #c0760f; --green: #22c55e; --red: #ef4444;
+    --blue: #3b82f6; --text: #e8eaf0; --muted: #7a8099; --low: #ff6b35;
+    --toyo: #3b82f6; --op: #a855f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 68px; position: sticky; top: 0; z-index: 100; }
+  .logo-area { display: flex; align-items: center; gap: 14px; }
+  .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: #000; letter-spacing: -1px; flex-shrink: 0; }
+  .logo-text h1 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; color: var(--accent); }
+  .logo-text p { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; }
+  .header-date { font-size: 12px; color: var(--muted); text-align: right; }
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 4px; overflow-x: auto; }
+  nav button { background: none; border: none; padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; font-family: 'Inter', sans-serif; }
+  nav button.active { color: var(--accent); border-bottom-color: var(--accent); }
+  nav button:hover:not(.active) { color: var(--text); }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
+  .sec-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .stat-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-card .value { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .stat-card.low .value { color: var(--low); }
+  .stat-card.ok .value { color: var(--green); }
+  .stat-card.gold .value { color: var(--accent); }
+  .stat-card.blue .value { color: var(--toyo); }
+  .stat-card.purple .value { color: var(--op); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
+  input, select { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; color: var(--text); font-family: 'Inter', sans-serif; outline: none; transition: border 0.2s; }
+  input:focus, select:focus { border-color: var(--accent); }
+  .btn { padding: 10px 22px; border-radius: 8px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #ffb733; }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-green { background: var(--green); color: #000; }
+  .btn-green:hover { background: #16a34a; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { background: var(--bg); padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border); }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  tbody tr:hover { background: rgba(232,160,32,0.04); }
+  tbody td { padding: 11px 14px; vertical-align: middle; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-B { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .badge-C { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .badge-low { background: rgba(239,68,68,0.15); color: var(--low); }
+  .badge-ok { background: rgba(34,197,94,0.15); color: var(--green); }
+  .badge-TOYO { background: rgba(59,130,246,0.2); color: #60a5fa; }
+  .badge-OP { background: rgba(168,85,247,0.2); color: #c084fc; }
+  .alert { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; font-size: 13px; color: #fca5a5; display: flex; align-items: flex-start; gap: 10px; }
+  .price-table { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .price-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .price-card.toyo-card { border-color: rgba(59,130,246,0.4); }
+  .price-card.op-card { border-color: rgba(168,85,247,0.4); }
+  .company-header { font-size: 14px; font-weight: 800; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; }
+  .company-header.toyo { background: rgba(59,130,246,0.15); color: #60a5fa; }
+  .company-header.op { background: rgba(168,85,247,0.15); color: #c084fc; }
+  .price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .price-row .pr-label { font-size: 12px; color: var(--muted); width: 160px; flex-shrink: 0; }
+  .price-row .pr-input { width: 110px !important; min-width: 110px !important; flex-shrink: 0; background: var(--surface) !important; border: 1.5px solid var(--accent) !important; border-radius: 8px; padding: 9px 12px; font-size: 15px; font-weight: 600; color: var(--text) !important; }
+  .price-row .pr-input:focus { border-color: #ffb733 !important; }
+  .price-row .pr-unit { font-size: 12px; color: var(--muted); }
+  .bill-items { margin-bottom: 14px; }
+  .bill-item-row { display: grid; grid-template-columns: 90px 1fr 70px 80px 36px; gap: 8px; align-items: end; margin-bottom: 10px; }
+  .bill-total { background: var(--bg); border: 1px solid var(--accent); border-radius: 10px; padding: 16px; text-align: right; }
+  .bill-total .total-val { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; color: var(--accent); }
+  .print-bill { background: #fff; color: #111; border-radius: 12px; padding: 28px; max-width: 560px; margin: 0 auto; font-size: 13px; }
+  .print-bill .pb-header { display: flex; align-items: center; gap: 14px; border-bottom: 2px solid #e8a020; padding-bottom: 14px; margin-bottom: 16px; }
+  .print-bill .pb-logo { width: 46px; height: 46px; background: linear-gradient(135deg, #e8a020, #c0760f); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 17px; color: #000; }
+  .print-bill h2 { font-size: 18px; font-weight: 800; color: #e8a020; }
+  .print-bill .pb-sub { font-size: 11px; color: #888; letter-spacing: 1px; text-transform: uppercase; }
+  .print-bill table { width: 100%; border-collapse: collapse; }
+  .print-bill th { background: #f3f4f6; padding: 8px 10px; font-size: 11px; text-align: left; }
+  .print-bill td { padding: 8px 10px; border-bottom: 1px solid #e5e7eb; }
+  .print-bill .pb-total { text-align: right; margin-top: 14px; font-size: 16px; font-weight: 700; color: #e8a020; }
+  .pb-company-row { font-weight: 700; font-size: 12px; padding: 6px 10px; }
+  .pb-toyo { background: #eff6ff; color: #1d4ed8; }
+  .pb-op { background: #faf5ff; color: #7e22ce; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .report-section { margin-bottom: 20px; }
+  .report-section h3 { font-size: 14px; color: var(--muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.8px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; }
+  .modal-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: center; }
+  .close-btn { background: none; border: none; color: var(--muted); font-size: 20px; cursor: pointer; }
+  .hidden { display: none !important; }
+  @media (max-width: 600px) {
+    .bill-item-row { grid-template-columns: 80px 1fr 60px 70px 30px; gap: 5px; }
+    .form-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-icon">MT</div>
+    <div class="logo-text">
+      <h1>Musaddique Traders</h1>
+      <p>Belt Stock Manager</p>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <div class="header-date" id="hdate"></div>
+    <button id="install-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;">
+      📲 Install App
+    </button>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('dashboard',event)">📊 Dashboard</button>
+  <button onclick="showTab('stock',event)">📦 Stock</button>
+  <button onclick="showTab('billing',event)">🧾 Billing</button>
+  <button onclick="showTab('prices',event)">💰 Prices</button>
+  <button onclick="showTab('report',event)">📋 Report</button>
+</nav>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <div class="tab-content active" id="tab-dashboard">
+    <div class="sec-title">Dashboard</div>
+    <div class="stats-row" id="stats-row"></div>
+    <div id="low-alerts"></div>
+    <div class="card">
+      <div class="card-title">All Stock — Quick View</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <button onclick="dashFilter('')" id="dbf-all" style="padding:6px 16px;border-radius:8px;border:2px solid var(--accent);background:rgba(232,160,32,0.1);color:var(--accent);font-weight:700;cursor:pointer;font-size:13px;">All</button>
+        <button onclick="dashFilter('TOYO')" id="dbf-TOYO" style="padding:6px 16px;border-radius:8px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px;">🔵 TOYO</button>
+        <button onclick="dashFilter('OP')" id="dbf-OP" style="padding:6px 16px;border-radius:8px;border:2px solid var(--border);background:var(--bg);color:var(--muted);font-weight:700;cursor:pointer;font-size:13px;">🟣 OP</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Belt Code</th><th>Company</th><th>Section</th><th>Size (inch)</th><th>Qty</th><th>Status</th><th>Value (₹)</th></tr>
+          </thead>
+          <tbody id="dash-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCK -->
+  <div class="tab-content" id="tab-stock">
+    <div class="sec-title">Stock Management</div>
+    <div class="card">
+      <div class="card-title">Add / Update Stock</div>
+      <div class="form-grid">
+        <div>
+          <label>Company</label>
+          <select id="s-company">
+            <option value="TOYO">🔵 TOYO</option>
+            <option value="OP">🟣 OP</option>
+          </select>
+        </div>
+        <div>
+          <label>Section</label>
+          <select id="s-section">
+            <option value="B">B Section</option>
+            <option value="C">C Section</option>
+          </select>
+        </div>
+        <div>
+          <label>Belt Size (inches)</label>
+          <input type="number" id="s-size" placeholder="e.g. 132" min="1"/>
+        </div>
+        <div>
+          <label>Quantity</label>
+          <input type="number" id="s-qty" placeholder="e.g. 10" min="0"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addStock()">+ Add to Stock</button>
+        <button class="btn btn-outline" onclick="setStock()">Set Exact Qty</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Deduct from Stock</div>
+      <div class="form-grid">
+        <div>
+          <label>Belt Code (e.g. TOYO-B132)</label>
+          <input type="text" id="d-code" placeholder="TOYO-B132" oninput="this.value=this.value.toUpperCase()"/>
+        </div>
+        <div>
+          <label>Quantity to Deduct</label>
+          <input type="number" id="d-qty" placeholder="e.g. 2" min="1"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-danger" onclick="deductStock()">- Deduct Stock</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Full Stock List</div>
+      <div style="margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <input type="text" id="search-input" placeholder="Search..." style="max-width:150px;" oninput="renderStockTable()"/>
+        <select id="filter-company" onchange="renderStockTable()" style="max-width:130px;">
+          <option value="">All Companies</option>
+          <option value="TOYO">🔵 TOYO</option>
+          <option value="OP">🟣 OP</option>
+        </select>
+        <select id="filter-section" onchange="renderStockTable()" style="max-width:130px;">
+          <option value="">All Sections</option>
+          <option value="B">B Section</option>
+          <option value="C">C Section</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Belt Code</th><th>Company</th><th>Section</th><th>Size</th><th>Qty</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="stock-table"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BILLING -->
+  <div class="tab-content" id="tab-billing">
+    <div class="sec-title">Bill Banana</div>
+    <div class="card">
+      <div class="card-title">Customer Details</div>
+      <div class="form-grid">
+        <div><label>Customer Name</label><input type="text" id="cust-name" placeholder="Customer ka naam"/></div>
+        <div><label>Bill No.</label><input type="text" id="bill-no" placeholder="Auto"/></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Belt Items Add Karo</div>
+      <div class="bill-items" id="bill-items"></div>
+      <button class="btn btn-outline" onclick="addBillItem()">+ Add Belt</button>
+    </div>
+    <div class="bill-total">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Total Amount</div>
+      <div class="total-val" id="bill-total-val">₹0.00</div>
+    </div>
+    <div class="btn-row" style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="generateBill()">Generate Bill</button>
+      <button class="btn btn-outline" onclick="clearBill()">Clear</button>
+    </div>
+  </div>
+
+  <!-- PRICES -->
+  <div class="tab-content" id="tab-prices">
+    <div class="sec-title">Price Manager</div>
+    <div class="card">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">TOYO aur OP dono companies ke B aur C section ke prices alag set karo — total 8 price slabs.</p>
+      <div class="price-table" id="price-cards"></div>
+      <div style="margin-top:16px;">
+        <button class="btn btn-primary" onclick="savePrices()">💾 Save All Prices</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Price History</div>
+      <div id="price-history-list" style="font-size:13px;color:var(--muted);"></div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="tab-content" id="tab-report">
+    <div class="sec-title">Weekly Report</div>
+    <div class="card">
+      <div id="weekly-report-content"></div>
+      <div class="btn-row" style="margin-top:16px;">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print Report</button>
+        <button class="btn btn-outline" onclick="generateReport()">🔄 Refresh</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- BILL MODAL -->
+<div class="modal-overlay hidden" id="bill-modal">
+  <div class="modal">
+    <div class="modal-title">
+      Bill Preview
+      <button class="close-btn" onclick="closeBillModal()">✕</button>
+    </div>
+    <div id="bill-preview"></div>
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="printBill()">🖨️ Print</button>
+      <button class="btn btn-outline" id="save-img-btn" onclick="saveBillAsImage()">🖼️ Save Image</button>
+      <button class="btn btn-green" id="confirm-deduct-btn" onclick="confirmBillDeduct()">✅ Confirm & Deduct</button>
+      <button class="btn btn-outline" onclick="closeBillAndClear()">✖ Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:var(--green);color:#000;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;display:none;z-index:300;box-shadow:0 4px 20px rgba(0,0,0,0.4);"></div>
+
+<script>
+const LOW_LIMIT = 4;
+const COMPANIES = ['TOYO','OP'];
+const SECTIONS = ['B','C'];
+
+function getData() { return JSON.parse(localStorage.getItem('mt_stock_v2') || '{}'); }
+function saveData(d) { localStorage.setItem('mt_stock_v2', JSON.stringify(d)); }
+
+function getDefaultPrices() {
+  return {
+    TOYO: {
+      B: [{label:'B1-B99 (upto 99")',maxInch:99,rate:2.5},{label:'B100+ (100" & above)',maxInch:9999,rate:2.8}],
+      C: [{label:'C1-C100 (upto 100")',maxInch:100,rate:3.2},{label:'C101+ (101" & above)',maxInch:9999,rate:3.5}]
+    },
+    OP: {
+      B: [{label:'B1-B99 (upto 99")',maxInch:99,rate:2.3},{label:'B100+ (100" & above)',maxInch:9999,rate:2.6}],
+      C: [{label:'C1-C100 (upto 100")',maxInch:100,rate:3.0},{label:'C101+ (101" & above)',maxInch:9999,rate:3.3}]
+    }
+  };
+}
+
+function getPrices() { return JSON.parse(localStorage.getItem('mt_prices_v2') || JSON.stringify(getDefaultPrices())); }
+function savePriceData(p) {
+  localStorage.setItem('mt_prices_v2', JSON.stringify(p));
+  let hist = JSON.parse(localStorage.getItem('mt_price_hist_v2') || '[]');
+  hist.unshift({date:new Date().toLocaleString('en-IN'),prices:JSON.parse(JSON.stringify(p))});
+  hist = hist.slice(0,10);
+  localStorage.setItem('mt_price_hist_v2', JSON.stringify(hist));
+}
+
+function getBillNo() {
+  let n = parseInt(localStorage.getItem('mt_billno') || '100');
+  localStorage.setItem('mt_billno', n+1);
+  return 'MT-' + String(n+1).padStart(4,'0');
+}
+
+function getPrice(company, section, inch) {
+  const prices = getPrices();
+  const slabs = (prices[company] && prices[company][section]) ? prices[company][section] : [];
+  for (let s of slabs) { if (inch <= s.maxInch) return s.rate; }
+  return slabs[slabs.length-1]?.rate || 0;
+}
+
+// Code format: "TOYO-B132" or "OP-C145"
+function parseBelt(code) {
+  const m = code.match(/^(TOYO|OP)-([BC])(\d+)$/i);
+  if (!m) return null;
+  return {company:m[1].toUpperCase(), section:m[2].toUpperCase(), inch:parseInt(m[3])};
+}
+
+function beltValue(code, qty) {
+  const p = parseBelt(code);
+  if (!p) return 0;
+  return getPrice(p.company, p.section, p.inch) * p.inch * qty;
+}
+
+function showTab(id, evt) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if (evt && evt.target) evt.target.classList.add('active');
+  if (id==='dashboard') renderDashboard();
+  if (id==='stock') renderStockTable();
+  if (id==='prices') renderPriceCards();
+  if (id==='report') generateReport();
+  if (id==='billing') renderBillItems();
+}
+
+function toast(msg, color) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.background = color || 'var(--green)'; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2800);
+}
+
+// DASHBOARD
+let dashCompanyFilter = '';
+function dashFilter(company) {
+  dashCompanyFilter = company;
+  ['all','TOYO','OP'].forEach(k => {
+    const btn = document.getElementById('dbf-'+k);
+    if (!btn) return;
+    const active = (k === company) || (k === 'all' && company === '');
+    btn.style.borderColor = active ? (k==='TOYO'?'#3b82f6':k==='OP'?'#a855f7':'var(--accent)') : 'var(--border)';
+    btn.style.color = active ? (k==='TOYO'?'#60a5fa':k==='OP'?'#c084fc':'var(--accent)') : 'var(--muted)';
+    btn.style.background = active ? (k==='TOYO'?'rgba(59,130,246,0.1)':k==='OP'?'rgba(168,85,247,0.1)':'rgba(232,160,32,0.1)') : 'var(--bg)';
+  });
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const data = getData();
+  const keys = Object.keys(data);
+  const lowItems = keys.filter(k => data[k] < LOW_LIMIT);
+  const totalQty = keys.reduce((s,k) => s+data[k], 0);
+  const totalVal = keys.reduce((s,k) => s+beltValue(k,data[k]), 0);
+  const toyoKeys = keys.filter(k => k.startsWith('TOYO-'));
+  const opKeys = keys.filter(k => k.startsWith('OP-'));
+  const toyoVal = toyoKeys.reduce((s,k) => s+beltValue(k,data[k]), 0);
+  const opVal = opKeys.reduce((s,k) => s+beltValue(k,data[k]), 0);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card gold"><div class="label">Belt Types</div><div class="value">${keys.length}</div></div>
+    <div class="stat-card ok"><div class="label">Total Qty</div><div class="value">${totalQty}</div></div>
+    <div class="stat-card ${lowItems.length>0?'low':'ok'}"><div class="label">Low Stock</div><div class="value">${lowItems.length}</div></div>
+    <div class="stat-card blue"><div class="label">TOYO Value</div><div class="value" style="font-size:17px;">₹${toyoVal.toFixed(0)}</div></div>
+    <div class="stat-card purple"><div class="label">OP Value</div><div class="value" style="font-size:17px;">₹${opVal.toFixed(0)}</div></div>
+    <div class="stat-card gold"><div class="label">Total Value</div><div class="value" style="font-size:17px;">₹${totalVal.toFixed(0)}</div></div>
+  `;
+
+  const alertDiv = document.getElementById('low-alerts');
+  alertDiv.innerHTML = lowItems.length > 0
+    ? `<div class="alert"><span style="font-size:18px;flex-shrink:0;">⚠️</span><div><b>Low Stock!</b> ${lowItems.join(', ')}</div></div>`
+    : '';
+
+  let filtered = keys.sort();
+  if (dashCompanyFilter) filtered = filtered.filter(k => k.startsWith(dashCompanyFilter+'-'));
+
+  const tbody = document.getElementById('dash-table');
+  tbody.innerHTML = filtered.length===0 ? '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted);">Koi stock nahi</td></tr>' : '';
+  filtered.forEach(code => {
+    const p = parseBelt(code); if (!p) return;
+    const qty = data[code]; const isLow = qty < LOW_LIMIT; const val = beltValue(code,qty);
+    tbody.innerHTML += `<tr>
+      <td><b>${code}</b></td>
+      <td><span class="badge badge-${p.company}">${p.company}</span></td>
+      <td><span class="badge badge-${p.section}">${p.section}</span></td>
+      <td>${p.inch}"</td><td>${qty}</td>
+      <td><span class="badge ${isLow?'badge-low':'badge-ok'}">${isLow?'⚠️ Low':'✅ OK'}</span></td>
+      <td>₹${val.toFixed(2)}</td>
+    </tr>`;
+  });
+}
+
+// STOCK
+function addStock() {
+  const company = document.getElementById('s-company').value;
+  const sec = document.getElementById('s-section').value;
+  const size = parseInt(document.getElementById('s-size').value);
+  const qty = parseInt(document.getElementById('s-qty').value);
+  if (!size || !qty || qty<1) { toast('Size aur quantity sahi bharo!','var(--red)'); return; }
+  const code = company+'-'+sec+size;
+  const data = getData(); data[code] = (data[code]||0)+qty; saveData(data);
+  toast(`✅ ${code} mein ${qty} belt add hua. Total: ${data[code]}`);
+  document.getElementById('s-size').value=''; document.getElementById('s-qty').value='';
+}
+
+function setStock() {
+  const company = document.getElementById('s-company').value;
+  const sec = document.getElementById('s-section').value;
+  const size = parseInt(document.getElementById('s-size').value);
+  const qty = parseInt(document.getElementById('s-qty').value);
+  if (!size || isNaN(qty) || qty<0) { toast('Sahi values bharo!','var(--red)'); return; }
+  const code = company+'-'+sec+size;
+  const data = getData(); data[code]=qty; saveData(data);
+  toast(`✅ ${code} ka stock set kiya: ${qty}`);
+  document.getElementById('s-size').value=''; document.getElementById('s-qty').value='';
+}
+
+function deductStock() {
+  const code = document.getElementById('d-code').value.trim().toUpperCase();
+  const qty = parseInt(document.getElementById('d-qty').value);
+  if (!code||!qty) { toast('Code aur quantity bharo!','var(--red)'); return; }
+  const data = getData();
+  if (data[code]===undefined) { toast(`${code} stock mein nahi hai!`,'var(--red)'); return; }
+  if (data[code]<qty) { toast(`Sirf ${data[code]} belt hai!`,'var(--red)'); return; }
+  data[code]-=qty; saveData(data);
+  toast(`✅ ${code} se ${qty} deduct. Baaki: ${data[code]}`);
+  document.getElementById('d-code').value=''; document.getElementById('d-qty').value='';
+}
+
+function deleteStock(code) {
+  if (!confirm(`${code} ko stock se hatao?`)) return;
+  const data = getData(); delete data[code]; saveData(data); renderStockTable();
+  toast(`${code} hata diya`,'var(--low)');
+}
+
+function renderStockTable() {
+  const data = getData();
+  const search = (document.getElementById('search-input')?.value||'').toUpperCase();
+  const filterCo = document.getElementById('filter-company')?.value||'';
+  const filterSec = document.getElementById('filter-section')?.value||'';
+  let keys = Object.keys(data).sort();
+  if (search) keys = keys.filter(k => k.includes(search));
+  if (filterCo) keys = keys.filter(k => k.startsWith(filterCo+'-'));
+  if (filterSec) keys = keys.filter(k => { const p=parseBelt(k); return p&&p.section===filterSec; });
+  const tbody = document.getElementById('stock-table');
+  tbody.innerHTML = keys.length===0 ? '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted);">Koi belt nahi</td></tr>' : '';
+  keys.forEach(code => {
+    const p = parseBelt(code); if (!p) return;
+    const qty = data[code]; const isLow = qty<LOW_LIMIT;
+    tbody.innerHTML += `<tr>
+      <td><b>${code}</b></td>
+      <td><span class="badge badge-${p.company}">${p.company}</span></td>
+      <td><span class="badge badge-${p.section}">${p.section}</span></td>
+      <td>${p.inch}"</td><td><b>${qty}</b></td>
+      <td><span class="badge ${isLow?'badge-low':'badge-ok'}">${isLow?'⚠️ Low':'✅ OK'}</span></td>
+      <td><button class="btn btn-danger" style="padding:6px 12px;font-size:11px;" onclick="deleteStock('${code}')">Delete</button></td>
+    </tr>`;
+  });
+}
+
+// BILLING
+let billItems = [{company:'TOYO', code:'', qty:1}];
+
+function renderBillItems() {
+  const container = document.getElementById('bill-items');
+  let html = '';
+  billItems.forEach((item,i) => {
+    const fullCode = item.company&&item.code ? item.company+'-'+item.code : '';
+    const p = fullCode ? parseBelt(fullCode) : null;
+    const rate = p ? getPrice(p.company,p.section,p.inch) : 0;
+    const subtotal = p ? (rate*p.inch*item.qty).toFixed(2) : '0.00';
+    html += `
+      <div class="bill-item-row">
+        <div>
+          ${i===0?'<label>Company</label>':''}
+          <select onchange="billItems[${i}].company=this.value;recalcBillRow(${i})">
+            <option value="TOYO" ${item.company==='TOYO'?'selected':''}>TOYO</option>
+            <option value="OP" ${item.company==='OP'?'selected':''}>OP</option>
+          </select>
+        </div>
+        <div>
+          ${i===0?'<label>Belt Code (e.g. B132)</label>':''}
+          <input type="text" value="${item.code}" placeholder="B132"
+            onchange="billItems[${i}].code=this.value.toUpperCase();this.value=this.value.toUpperCase();recalcBillRow(${i})"/>
+        </div>
+        <div>
+          ${i===0?'<label>Qty</label>':''}
+          <input type="number" value="${item.qty}" min="1"
+            oninput="billItems[${i}].qty=+this.value||1;recalcBillRow(${i})"/>
+        </div>
+        <div>
+          ${i===0?'<label>Subtotal</label>':''}
+          <input readonly id="bsubtotal-${i}" value="₹${subtotal}" style="color:var(--accent);font-weight:600;"/>
+        </div>
+        <div>
+          ${i===0?'<label>&nbsp;</label>':''}
+          <button class="btn btn-danger" style="padding:8px 10px;" onclick="removeBillItem(${i})">✕</button>
+        </div>
+      </div>`;
+  });
+  container.innerHTML = html;
+  updateBillTotal();
+}
+
+function recalcBillRow(i) {
+  const item = billItems[i];
+  const fullCode = item.company&&item.code ? item.company+'-'+item.code : '';
+  const p = fullCode ? parseBelt(fullCode) : null;
+  const rate = p ? getPrice(p.company,p.section,p.inch) : 0;
+  const subtotal = p ? (rate*p.inch*item.qty).toFixed(2) : '0.00';
+  const el = document.getElementById('bsubtotal-'+i);
+  if (el) el.value = '₹'+subtotal;
+  updateBillTotal();
+}
+
+function addBillItem() { billItems.push({company:'TOYO',code:'',qty:1}); renderBillItems(); }
+
+function removeBillItem(i) {
+  billItems.splice(i,1);
+  if (billItems.length===0) billItems=[{company:'TOYO',code:'',qty:1}];
+  renderBillItems();
+}
+
+function updateBillTotal() {
+  let total = 0;
+  billItems.forEach(item => {
+    const fullCode = item.company&&item.code ? item.company+'-'+item.code : '';
+    const p = fullCode ? parseBelt(fullCode) : null;
+    if (p) total += getPrice(p.company,p.section,p.inch)*p.inch*item.qty;
+  });
+  document.getElementById('bill-total-val').textContent = '₹'+total.toFixed(2);
+}
+
+let pendingBillItems = [];
+
+function generateBill() {
+  const cust = document.getElementById('cust-name').value.trim() || 'Walk-in Customer';
+  const validItems = billItems.filter(item => {
+    const fc = item.company&&item.code ? item.company+'-'+item.code : '';
+    return parseBelt(fc) && item.qty>0;
+  });
+  if (validItems.length===0) { toast('Koi valid belt nahi!','var(--red)'); return; }
+  const billNo = document.getElementById('bill-no').value || getBillNo();
+  document.getElementById('bill-no').value = billNo;
+
+  const toyoItems = validItems.filter(i => i.company==='TOYO');
+  const opItems = validItems.filter(i => i.company==='OP');
+  let total = 0;
+
+  function buildRows(items, company) {
+    if (items.length===0) return '';
+    let r = `<tr><td colspan="4" class="pb-company-row pb-${company.toLowerCase()}">🏭 ${company} Company</td></tr>`;
+    items.forEach(item => {
+      const fc = item.company+'-'+item.code;
+      const p = parseBelt(fc);
+      const rate = getPrice(p.company,p.section,p.inch);
+      const sub = rate*p.inch*item.qty; total+=sub;
+      r += `<tr><td>${fc}</td><td>${p.section} Section, ${p.inch}"</td><td>${item.qty}</td><td>₹${sub.toFixed(2)}</td></tr>`;
+    });
+    return r;
+  }
+
+  const rows = buildRows(toyoItems,'TOYO') + buildRows(opItems,'OP');
+  const date = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+
+  document.getElementById('bill-preview').innerHTML = `
+    <div class="print-bill" id="printable-bill">
+      <div class="pb-header">
+        <div class="pb-logo">MT</div>
+        <div><h2>Musaddique Traders</h2><div class="pb-sub">Belt Stock Manager</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:12px;">
+        <div><b>Customer:</b> ${cust}</div>
+        <div><b>Bill No:</b> ${billNo}<br/><b>Date:</b> ${date}</div>
+      </div>
+      <table>
+        <thead><tr><th>Code</th><th>Description</th><th>Qty</th><th>Amount</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="pb-total">Grand Total: ₹${total.toFixed(2)}</div>
+      <div style="margin-top:16px;font-size:11px;color:#888;text-align:center;">Thank you! — Musaddique Traders</div>
+    </div>`;
+
+  pendingBillItems = validItems;
+  document.getElementById('bill-modal').classList.remove('hidden');
+}
+
+function confirmBillDeduct() {
+  const data = getData();
+  let errors = [];
+  pendingBillItems.forEach(item => {
+    const fc = (item.company+'-'+item.code).toUpperCase();
+    if ((data[fc]||0)<item.qty) errors.push(`${fc}: sirf ${data[fc]||0} hai`);
+  });
+  if (errors.length>0) { toast('Stock kam hai: '+errors.join(', '),'var(--red)'); return; }
+  pendingBillItems.forEach(item => {
+    const fc = (item.company+'-'+item.code).toUpperCase();
+    data[fc]=(data[fc]||0)-item.qty;
+  });
+  saveData(data);
+  const btn = document.getElementById('confirm-deduct-btn');
+  btn.textContent='✅ Stock Deducted!'; btn.disabled=true; btn.style.background='#16a34a';
+  toast('✅ Stock update ho gaya!');
+}
+
+function saveBillAsImage() {
+  const billEl = document.getElementById('printable-bill');
+  if (!billEl) { toast('Pehle bill generate karo!','var(--red)'); return; }
+  const btn = document.getElementById('save-img-btn');
+  btn.textContent='⏳ Saving...'; btn.disabled=true;
+  html2canvas(billEl,{backgroundColor:'#ffffff',scale:3,useCORS:true,logging:false}).then(canvas => {
+    const link = document.createElement('a');
+    link.download=`MT-Bill-${document.getElementById('bill-no').value||'bill'}.png`;
+    link.href=canvas.toDataURL('image/png'); link.click();
+    btn.textContent='🖼️ Save Image'; btn.disabled=false;
+    toast('✅ Bill image download ho gayi!');
+  }).catch(() => { btn.textContent='🖼️ Save Image'; btn.disabled=false; toast('Image failed, print karo','var(--red)'); });
+}
+
+function printBill() {
+  const content = document.getElementById('printable-bill').outerHTML;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Bill</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+    <style>body{font-family:Inter,sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}th{background:#f3f4f6;padding:8px;text-align:left;}td{padding:8px;border-bottom:1px solid #e5e7eb;}.pb-logo{width:46px;height:46px;background:linear-gradient(135deg,#e8a020,#c0760f);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:Syne,sans-serif;font-weight:800;font-size:17px;color:#000;}.pb-header{display:flex;align-items:center;gap:14px;border-bottom:2px solid #e8a020;padding-bottom:14px;margin-bottom:16px;}h2{color:#e8a020;font-size:18px;}.pb-total{text-align:right;margin-top:14px;font-size:16px;font-weight:700;color:#e8a020;}.pb-company-row{font-weight:700;font-size:12px;padding:6px 10px;}.pb-toyo{background:#eff6ff;color:#1d4ed8;}.pb-op{background:#faf5ff;color:#7e22ce;}</style>
+    </head><body>${content}</body></html>`);
+  w.document.close(); w.print();
+}
+
+function closeBillModal() { document.getElementById('bill-modal').classList.add('hidden'); }
+function closeBillAndClear() {
+  const btn = document.getElementById('confirm-deduct-btn');
+  if (btn) { btn.textContent='✅ Confirm & Deduct'; btn.disabled=false; btn.style.background=''; }
+  document.getElementById('bill-modal').classList.add('hidden');
+  clearBill();
+}
+function clearBill() {
+  billItems=[{company:'TOYO',code:'',qty:1}];
+  document.getElementById('cust-name').value='';
+  document.getElementById('bill-no').value='';
+  renderBillItems();
+}
+
+// PRICES
+function renderPriceCards() {
+  const prices = getPrices();
+  const container = document.getElementById('price-cards');
+  let html = '';
+  COMPANIES.forEach(company => {
+    const cc = company==='TOYO'?'toyo':'op';
+    SECTIONS.forEach(sec => {
+      const slabs = prices[company][sec];
+      let rows = slabs.map((s,i) => `
+        <div class="price-row">
+          <span class="pr-label">${s.label}</span>
+          <input class="pr-input" type="number" step="0.01" min="0.01" value="${s.rate}" id="price-${company}-${sec}-${i}" placeholder="0.00"/>
+          <span class="pr-unit">₹/inch</span>
+        </div>`).join('');
+      html += `<div class="price-card ${cc}-card">
+        <div class="company-header ${cc}">${company==='TOYO'?'🔵':'🟣'} ${company} — ${sec} Section</div>
+        ${rows}
+      </div>`;
+    });
+  });
+  container.innerHTML = html;
+  renderPriceHistory();
+}
+
+function savePrices() {
+  const prices = getPrices(); let anyError = false;
+  COMPANIES.forEach(company => {
+    SECTIONS.forEach(sec => {
+      prices[company][sec].forEach((s,i) => {
+        const el = document.getElementById(`price-${company}-${sec}-${i}`);
+        if (!el) { anyError=true; return; }
+        const val = parseFloat(el.value);
+        if (isNaN(val)||val<=0) { el.style.borderColor='var(--red)'; anyError=true; }
+        else { el.style.borderColor=''; prices[company][sec][i].rate=val; }
+      });
+    });
+  });
+  if (anyError) { toast('❌ Sahi price bharo!','var(--red)'); return; }
+  savePriceData(prices);
+  toast('✅ Sab prices save ho gayi!');
+  renderPriceHistory();
+}
+
+function renderPriceHistory() {
+  const hist = JSON.parse(localStorage.getItem('mt_price_hist_v2')||'[]');
+  const histDiv = document.getElementById('price-history-list');
+  if (!histDiv) return;
+  if (hist.length===0) { histDiv.textContent='Koi price history nahi.'; return; }
+  histDiv.innerHTML = hist.slice(0,5).map(h =>
+    `<div style="margin-bottom:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:12px;">
+      <b style="color:var(--text);">${h.date}</b><br/>
+      <span style="color:#60a5fa;">TOYO</span> B:${h.prices.TOYO.B.map(s=>s.label.split('-')[0]+'=₹'+s.rate).join('|')} | C:${h.prices.TOYO.C.map(s=>s.label.split('-')[0]+'=₹'+s.rate).join('|')}<br/>
+      <span style="color:#c084fc;">OP</span> B:${h.prices.OP.B.map(s=>s.label.split('-')[0]+'=₹'+s.rate).join('|')} | C:${h.prices.OP.C.map(s=>s.label.split('-')[0]+'=₹'+s.rate).join('|')}
+    </div>`
+  ).join('');
+}
+
+// REPORT
+function generateReport() {
+  const data = getData();
+  const keys = Object.keys(data).sort();
+  const lowItems = keys.filter(k => data[k]<LOW_LIMIT);
+  const date = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  let lowRows = lowItems.map(code => {
+    const p = parseBelt(code);
+    return `<tr><td><b>${code}</b></td><td><span class="badge badge-${p.company}">${p.company}</span></td><td>${p.section}</td><td>${p.inch}"</td><td style="color:var(--low);font-weight:700;">${data[code]}</td><td style="color:var(--accent);">ORDER KARO</td></tr>`;
+  }).join('');
+
+  let allRows = keys.map(code => {
+    const p = parseBelt(code); if (!p) return '';
+    const qty=data[code]; const isLow=qty<LOW_LIMIT; const val=beltValue(code,qty);
+    return `<tr><td><b>${code}</b></td><td><span class="badge badge-${p.company}">${p.company}</span></td><td>${p.section}</td><td>${qty}</td><td>₹${val.toFixed(2)}</td><td><span class="badge ${isLow?'badge-low':'badge-ok'}">${isLow?'⚠️ Low':'✅ OK'}</span></td></tr>`;
+  }).join('');
+
+  const totalVal = keys.reduce((s,k) => s+beltValue(k,data[k]),0);
+  document.getElementById('weekly-report-content').innerHTML = `
+    <div style="border-bottom:1px solid var(--border);padding-bottom:14px;margin-bottom:16px;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">📋 Weekly Stock Report</div>
+      <div style="font-size:12px;color:var(--muted);">Musaddique Traders — ${date}</div>
+    </div>
+    <div class="report-section">
+      <h3>⚠️ Low Stock / Order List</h3>
+      ${lowItems.length===0
+        ? '<p style="color:var(--green);font-size:13px;">✅ Sab stock theek hai!</p>'
+        : `<div class="table-wrap"><table><thead><tr><th>Code</th><th>Company</th><th>Section</th><th>Size</th><th>Qty</th><th>Action</th></tr></thead><tbody>${lowRows}</tbody></table></div>`}
+    </div>
+    <div class="report-section">
+      <h3>📦 Full Stock Summary</h3>
+      <div class="table-wrap"><table><thead><tr><th>Code</th><th>Company</th><th>Section</th><th>Qty</th><th>Value</th><th>Status</th></tr></thead>
+      <tbody>${allRows||'<tr><td colspan="6" style="text-align:center;padding:16px;color:var(--muted);">Koi stock nahi</td></tr>'}</tbody></table></div>
+    </div>
+    <div style="background:var(--bg);border:1px solid var(--accent);border-radius:10px;padding:14px;margin-top:14px;display:flex;justify-content:space-between;align-items:center;">
+      <div><div style="font-size:12px;color:var(--muted);">Total Stock Value</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);">₹${totalVal.toFixed(2)}</div></div>
+      <div style="text-align:right;"><div style="font-size:12px;color:var(--muted);">Low Items</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:${lowItems.length>0?'var(--low)':'var(--green)'};">${lowItems.length}</div></div>
+    </div>`;
+}
+
+// INIT
+function init() {
+  const now = new Date();
+  document.getElementById('hdate').innerHTML = now.toLocaleDateString('en-IN',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})+'<br/>'+now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  renderDashboard();
+  renderBillItems();
+}
+init();
+
+// PWA install (only when sw.js available locally)
+let deferredPrompt;
+try {
+  if ('serviceWorker' in navigator && location.protocol !== 'blob:' && !location.hostname.includes('claudeusercontent')) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    });
+  }
+} catch(e) {}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('install-btn').style.display='flex'; });
+window.addEventListener('appinstalled', () => { document.getElementById('install-btn').style.display='none'; deferredPrompt=null; });
+function installApp() {
+  if (!deferredPrompt) { toast('Apne phone mein download kar ke open karo install ke liye!','var(--accent)'); return; }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(choice => { if(choice.outcome==='accepted') toast('✅ App install ho raha hai!'); deferredPrompt=null; document.getElementById('install-btn').style.display='none'; });
+}
+</script>
+</body>
+</html>
