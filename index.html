@@ -144,6 +144,7 @@
   <button onclick="showTab('billing',event)">🧾 Billing</button>
   <button onclick="showTab('prices',event)">💰 Prices</button>
   <button onclick="showTab('report',event)">📋 Report</button>
+  <button onclick="showTab('history',event)">🕐 History</button>
 </nav>
 
 <main>
@@ -302,6 +303,68 @@
     </div>
   </div>
 
+  <!-- HISTORY -->
+  <div class="tab-content" id="tab-history">
+    <div class="sec-title">Sale History</div>
+    <div class="card">
+      <div class="card-title">Filter karo</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label>Customer Search</label>
+          <input type="text" id="hist-search" placeholder="Naam ya belt code..." style="max-width:180px;" oninput="renderHistory()"/>
+        </div>
+        <div>
+          <label>Company</label>
+          <select id="hist-company" onchange="renderHistory()" style="max-width:120px;">
+            <option value="">Sab</option>
+            <option value="TOYO">🔵 TOYO</option>
+            <option value="OP">🟣 OP</option>
+          </select>
+        </div>
+        <div>
+          <label>Date From</label>
+          <input type="date" id="hist-from" onchange="renderHistory()" style="max-width:150px;"/>
+        </div>
+        <div>
+          <label>Date To</label>
+          <input type="date" id="hist-to" onchange="renderHistory()" style="max-width:150px;"/>
+        </div>
+        <button class="btn btn-outline" onclick="clearHistoryFilter()">Reset</button>
+        <button class="btn btn-danger" style="margin-left:auto;" onclick="clearAllHistory()">🗑️ Sab Clear</button>
+      </div>
+    </div>
+
+    <div class="card" id="hist-summary-card" style="display:none;">
+      <div class="card-title">Filter Summary</div>
+      <div id="hist-summary" style="display:flex;gap:16px;flex-wrap:wrap;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Sale Records</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tareekh / Time</th>
+              <th>Bill No</th>
+              <th>Customer</th>
+              <th>Belt Code</th>
+              <th>Company</th>
+              <th>Section</th>
+              <th>Size</th>
+              <th>Qty</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="history-table"></tbody>
+        </table>
+      </div>
+      <div id="hist-empty" style="text-align:center;padding:30px;color:var(--muted);font-size:14px;display:none;">
+        📭 Koi record nahi mila
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- BILL MODAL -->
@@ -388,7 +451,7 @@ function showTab(id, evt) {
   if (id==='stock') renderStockTable();
   if (id==='prices') renderPriceCards();
   if (id==='report') generateReport();
-  if (id==='billing') renderBillItems();
+  if (id==='history') renderHistory();
 }
 
 function toast(msg, color) {
@@ -489,6 +552,28 @@ function deductStock() {
   if (data[code]===undefined) { toast(`${code} stock mein nahi hai!`,'var(--red)'); return; }
   if (data[code]<qty) { toast(`Sirf ${data[code]} belt hai!`,'var(--red)'); return; }
   data[code]-=qty; saveData(data);
+
+  // Save to history
+  const p = parseBelt(code);
+  const rate = p ? getPrice(p.company,p.section,p.inch) : 0;
+  const now = new Date();
+  const hist = getHistory();
+  hist.unshift({
+    id: Date.now()+Math.random(),
+    date: now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),
+    time: now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+    dateISO: now.toISOString().split('T')[0],
+    billNo: 'Manual',
+    customer: 'Manual Deduct',
+    beltCode: code,
+    company: p?p.company:'',
+    section: p?p.section:'',
+    inch: p?p.inch:0,
+    qty: qty,
+    amount: p ? rate*p.inch*qty : 0
+  });
+  saveHistory(hist);
+
   toast(`✅ ${code} se ${qty} deduct. Baaki: ${data[code]}`);
   document.getElementById('d-code').value=''; document.getElementById('d-qty').value='';
 }
@@ -664,9 +749,37 @@ function confirmBillDeduct() {
     data[fc]=(data[fc]||0)-item.qty;
   });
   saveData(data);
+
+  // Save to history
+  const billNo = document.getElementById('bill-no').value || '';
+  const custName = document.getElementById('cust-name').value.trim() || 'Walk-in Customer';
+  const now = new Date();
+  const hist = getHistory();
+  pendingBillItems.forEach(item => {
+    const fc = (item.company+'-'+item.code).toUpperCase();
+    const p = parseBelt(fc);
+    const rate = p ? getPrice(p.company,p.section,p.inch) : 0;
+    const amount = p ? rate*p.inch*item.qty : 0;
+    hist.unshift({
+      id: Date.now()+Math.random(),
+      date: now.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}),
+      time: now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}),
+      dateISO: now.toISOString().split('T')[0],
+      billNo: billNo,
+      customer: custName,
+      beltCode: fc,
+      company: item.company,
+      section: p?p.section:'',
+      inch: p?p.inch:0,
+      qty: item.qty,
+      amount: amount
+    });
+  });
+  saveHistory(hist);
+
   const btn = document.getElementById('confirm-deduct-btn');
   btn.textContent='✅ Stock Deducted!'; btn.disabled=true; btn.style.background='#16a34a';
-  toast('✅ Stock update ho gaya!');
+  toast('✅ Stock update aur history save ho gayi!');
 }
 
 function saveBillAsImage() {
@@ -806,6 +919,78 @@ function generateReport() {
     </div>`;
 }
 
+// HISTORY
+function getHistory() { return JSON.parse(localStorage.getItem('mt_history_v1') || '[]'); }
+function saveHistory(h) { localStorage.setItem('mt_history_v1', JSON.stringify(h)); }
+
+function renderHistory() {
+  const hist = getHistory();
+  const search = (document.getElementById('hist-search')?.value||'').toLowerCase();
+  const company = document.getElementById('hist-company')?.value||'';
+  const from = document.getElementById('hist-from')?.value||'';
+  const to = document.getElementById('hist-to')?.value||'';
+
+  let filtered = hist.filter(r => {
+    if (search && !r.customer.toLowerCase().includes(search) && !r.beltCode.toLowerCase().includes(search) && !r.billNo.toLowerCase().includes(search)) return false;
+    if (company && r.company !== company) return false;
+    if (from && r.dateISO < from) return false;
+    if (to && r.dateISO > to) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('history-table');
+  const empty = document.getElementById('hist-empty');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('hist-summary-card').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Summary
+  const totalAmt = filtered.reduce((s,r) => s+r.amount, 0);
+  const totalQty = filtered.reduce((s,r) => s+r.qty, 0);
+  const toyoAmt = filtered.filter(r=>r.company==='TOYO').reduce((s,r)=>s+r.amount,0);
+  const opAmt = filtered.filter(r=>r.company==='OP').reduce((s,r)=>s+r.amount,0);
+  document.getElementById('hist-summary-card').style.display='block';
+  document.getElementById('hist-summary').innerHTML = `
+    <div class="stat-card gold" style="min-width:120px;padding:12px;"><div class="label">Total Sales</div><div class="value" style="font-size:16px;">₹${totalAmt.toFixed(0)}</div></div>
+    <div class="stat-card ok" style="min-width:120px;padding:12px;"><div class="label">Total Qty</div><div class="value" style="font-size:16px;">${totalQty}</div></div>
+    <div class="stat-card blue" style="min-width:120px;padding:12px;"><div class="label">TOYO Sales</div><div class="value" style="font-size:16px;">₹${toyoAmt.toFixed(0)}</div></div>
+    <div class="stat-card purple" style="min-width:120px;padding:12px;"><div class="label">OP Sales</div><div class="value" style="font-size:16px;">₹${opAmt.toFixed(0)}</div></div>
+    <div class="stat-card gold" style="min-width:120px;padding:12px;"><div class="label">Records</div><div class="value" style="font-size:16px;">${filtered.length}</div></div>
+  `;
+
+  tbody.innerHTML = filtered.map(r => `<tr>
+    <td><div style="font-weight:600;font-size:13px;">${r.date}</div><div style="font-size:11px;color:var(--muted);">${r.time}</div></td>
+    <td style="font-size:12px;color:var(--accent);">${r.billNo||'—'}</td>
+    <td><b>${r.customer}</b></td>
+    <td><b>${r.beltCode}</b></td>
+    <td><span class="badge badge-${r.company}">${r.company}</span></td>
+    <td><span class="badge badge-${r.section}">${r.section}</span></td>
+    <td>${r.inch}"</td>
+    <td style="font-weight:700;">${r.qty}</td>
+    <td style="color:var(--green);font-weight:700;">₹${r.amount.toFixed(2)}</td>
+  </tr>`).join('');
+}
+
+function clearHistoryFilter() {
+  document.getElementById('hist-search').value='';
+  document.getElementById('hist-company').value='';
+  document.getElementById('hist-from').value='';
+  document.getElementById('hist-to').value='';
+  renderHistory();
+}
+
+function clearAllHistory() {
+  if (!confirm('Poori history delete karni hai? Yeh wapas nahi aayegi!')) return;
+  localStorage.removeItem('mt_history_v1');
+  renderHistory();
+  toast('History clear ho gayi','var(--low)');
+}
+
 // INIT
 function init() {
   const now = new Date();
@@ -815,15 +1000,15 @@ function init() {
 }
 init();
 
-// PWA install (only when sw.js available locally)
+// PWA Service Worker
 let deferredPrompt;
-try {
-  if ('serviceWorker' in navigator && location.protocol !== 'blob:' && !location.hostname.includes('claudeusercontent')) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    });
-  }
-} catch(e) {}
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('SW registered'))
+      .catch(e => console.log('SW skip:', e));
+  });
+}
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt=e; document.getElementById('install-btn').style.display='flex'; });
 window.addEventListener('appinstalled', () => { document.getElementById('install-btn').style.display='none'; deferredPrompt=null; });
 function installApp() {
